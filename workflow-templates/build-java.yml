@@ -33,13 +33,3 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPOSITORY: ${{ github.repository }}
-
-      - name: Publish to Artifactory
-        if: github.ref == 'refs/heads/$default-branch'
-        run: |
-          git clone https://github.com/Opetushallitus/ci-tools.git
-          source ci-tools/common/setup-tools.sh
-          mvn deploy --batch-mode --projects . --settings ci-tools/common/maven-settings.xml -DaltDeploymentRepository=oph-sade-artifactory::default::https://artifactory.opintopolku.fi/artifactory/oph-sade-release-local -DaltSnapshotDeploymentRepository=oph-sade-artifactory::default::https://artifactory.opintopolku.fi/artifactory/oph-sade-snapshot-local
-        env:
-          ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
-          ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
