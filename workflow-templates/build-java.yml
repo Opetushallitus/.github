@@ -5,6 +5,12 @@ on:
     types: [ created ]
   push:
     branches: [ $default-branch ]
+  workflow_call:
+    inputs:
+      java-version:
+        required: true
+        type: string
+
 jobs:
   publish:
     runs-on: ubuntu-latest 
@@ -16,7 +22,7 @@ jobs:
 
       - uses: actions/setup-java@v3
         with:
-          java-version: '#INSERT_JAVA_VERSION_HERE_8_11_17#'
+          java-version: ${{ inputs.java-version }}
           distribution: 'corretto'
           cache: 'maven'
 
