@@ -1,0 +1,12 @@
+{
+    "name": "Opetushallitus Java package workflow",
+    "description": "Java Maven build package and deploy to github packages",
+    "categories": [
+        "Java"
+    ],
+    "iconName": "oph",
+    "filePatterns": [
+        "pom.xml$",
+        ".*\\.java$"
+    ]
+}

@@ -1,0 +1,12 @@
+{
+    "name": "Opetushallitus Java ECR workflow",
+    "description": "Take .jar file from a folder and push into ecr",
+    "categories": [
+        "Java"
+    ],
+    "iconName": "oph",
+    "filePatterns": [
+        "pom.xml$",
+        ".*\\.java$"
+    ]
+}
