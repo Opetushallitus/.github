@@ -1,0 +1,41 @@
+name: build and publish
+on:
+  workflow_dispatch:
+  release:
+    types: [ created ]
+  push:
+    branches: [ $default-branch ]
+  workflow_call:
+    inputs:
+      java-version:
+        required: true
+        type: string
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest 
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: ${{ inputs.java-version }}
+          distribution: 'corretto'
+          cache: 'maven'
+
+      - name: Run tests
+        run: mvn test
+
+      - name: Build with Maven
+        run: mvn clean package
+
+      - name: Publish to Github
+        if: github.ref == 'refs/heads/$default-branch'
+        continue-on-error: true
+        run: mvn deploy --batch-mode --projects . -DaltDeploymentRepository=github::default::https://maven.pkg.github.com/Opetushallitus/${{ github.repository }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
