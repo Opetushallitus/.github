@@ -35,7 +35,7 @@ on:
 
 env:
   DOCKER_BUILD_DIR: '/tmp/docker_build'
-  ARTIFACT_DEST_PATH: 'usr/local/bin'
+  ARTIFACT_DEST_PATH: '/usr/local/bin'
 
 jobs:
   push:
