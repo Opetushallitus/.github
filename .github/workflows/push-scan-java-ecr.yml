@@ -111,7 +111,7 @@ jobs:
         uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5
         with:
           images: |
-            ${{ steps.ecr-login.outputs.registry }}/utility/${{ inputs.application }}:master
+            ${{ steps.ecr-login.outputs.registry }}/utility/${{ inputs.application }}
           tags: |
             type=raw,value=ga-${{ github.run_number }}
             type=raw,value=${{ github.ref_name }}
