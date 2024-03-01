@@ -20,17 +20,17 @@ on:
         required: true
         type: string
       jarfolder:
-        description: 'Folder which contains the jarfile mentioned above'
+        description: 'Folder which contains the jarfile mentioned above. Default: target'
         required: false
         default: 'target'
         type: string
       working-directory:
-        description: 'Define starting directory for monorepos'
+        description: 'Define starting directory for monorepos. Default: .'
         required: false
         type: string
         default: '.'
       download-artifact:
-        description: 'Downloads the artifact instead of fetching it from cache, set download-artifact-name if you set this to true'
+        description: 'Downloads the artifact instead of fetching it from cache, set download-artifact-name if you set this to true. Default: false'
         required: false
         type: boolean
         default: false
@@ -79,9 +79,6 @@ jobs:
 
       - name: Check that there is a .jar file available in jarfolder
         run: |
-          pwd
-          ls -la
-          ls -la ${{ inputs.jarfolder }}
           count=$(find ${{ inputs.jarfolder }}/${{ inputs.jarfile }} -type f | wc -l)
           if [ $count -eq 0 ]
           then
