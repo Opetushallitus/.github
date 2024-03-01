@@ -29,6 +29,16 @@ on:
         required: false
         type: string
         default: '.'
+      download-artifact:
+        description: 'Downloads the artifact instead of fetching it from cache, set download-artifact-name if you set this to true'
+        required: false
+        type: boolean
+        default: false
+      download-artifact-name:
+        description: 'Name of the artifact downloaded with download-artifact'
+        required: false
+        type: string
+        
     secrets:
       AWS_UTILITY_ROLE_ARN:
         required: true
@@ -53,13 +63,19 @@ jobs:
           egress-policy: audit
       
       - uses: actions/checkout@v4
-
+          
       - uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2 # v4
+        if: ${{ inputs.download-artifact == false }}
         id: restore-build
         with:
           path: |
             ${{ inputs.jarfolder }}
           key: ${{ github.sha }}
+      
+      - uses: actions/download-artifact@v4
+        if: ${{ inputs.download-artifact == true }}
+        with:
+          name: ${{ inputs.download-artifact-name }}
 
       - name: Check that there is a .jar file available in jarfolder
         run: |
