@@ -1,0 +1,11 @@
+name: build and publish
+on:
+  workflow_dispatch:
+  release:
+    types: [ created ]
+  push:
+    branches: [ $default-branch ]
+
+jobs:
+  publish:
+    uses: Opetushallitus/.github/.github/workflows/deploy-from-ecr-to-ecs.yml@main

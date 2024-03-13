@@ -51,6 +51,8 @@ jobs:
   push:
     name: Push and scan java image
     runs-on: ubuntu-latest
+    outputs:
+      build_id: ${{ steps.output.outputs.build_id }}
 
     defaults:
       run:
@@ -146,9 +148,11 @@ jobs:
 
       - name: Update build metadata
         shell: bash
+        id: output
         run: |
           BUILD_TIMESTAMP=`TZ='Europe/Helsinki' date +'%Y-%m-%d %H:%M:%S %Z'`
           aws dynamodb put-item --table-name builds --item "{\"Service\": {\"S\": \"${{ inputs.application }}\"}, \"Build\": {\"S\": \"ga-$GITHUB_RUN_NUMBER\"}, \"Branch\": {\"S\": \"$GITHUB_REF_NAME\"}, \"Commit\": {\"S\": \"$GITHUB_SHA\"}, \"Time\": {\"S\": \"$BUILD_TIMESTAMP\"}}" --condition-expression "attribute_not_exists(Id)" --region eu-west-1
+          echo "build_id=ga-$GITHUB_RUN_NUMBER" >> $GITHUB_OUTPUT
 
       # Scanning didn't work with cas, test the skip-dirs later
       # - name: Scan image

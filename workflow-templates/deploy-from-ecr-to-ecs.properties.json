@@ -1,0 +1,12 @@
+{
+    "name": "Opetushallitus Deploy service from ECR to ECS",
+    "description": "Update task definition and update service",
+    "categories": [
+        "Java"
+    ],
+    "iconName": "oph",
+    "filePatterns": [
+        "pom.xml$",
+        ".*\\.java$"
+    ]
+}
