@@ -15,10 +15,6 @@ on:
         description: 'Environment which to deploy to (hahtuva/untuva/pallero/sade)'
         required: true
         type: string
-    secrets:
-      AWS_ENVIRONMENT_ROLE_ARN:
-        description: 'Specific role for the environment'
-        required: true
   workflow_dispatch: 
     inputs:
       application:
