@@ -101,7 +101,8 @@ jobs:
       
       - name: Update deployment metadata
         run: |
-          aws dynamodb put-item --table-name deployments --item "{\"EnvService\": {\"S\": \"${{ inputs.environment }}-${{ inputs.application }}\"}, \"Build\": {\"S\": \"ga-$GITHUB_RUN_NUMBER\"}, \"User\": {\"S\": \"$GITHUB_TRIGGERING_ACTOR\"}, \"Time\": {\"S\": \"$BUILD_TIMESTAMP\"}}" --region eu-west-1
+          DEPLOY_TIMESTAMP=`TZ='Europe/Helsinki' date +'%Y-%m-%d %H:%M:%S %Z'`
+          aws dynamodb put-item --table-name deployments --item "{\"EnvService\": {\"S\": \"${{ inputs.environment }}-${{ inputs.application }}\"}, \"Build\": {\"S\": \"ga-$GITHUB_RUN_NUMBER\"}, \"User\": {\"S\": \"$GITHUB_TRIGGERING_ACTOR\"}, \"Time\": {\"S\": \"$DEPLOY_TIMESTAMP\"}}" --region eu-west-1
           aws dynamodb put-item --table-name services --item "{\"EnvService\": {\"S\": \"${{ inputs.environment }}-${{ inputs.application }}\"}, \"LatestDeployedBuild\": {\"S\": \"ga-$GITHUB_RUN_NUMBER\"}}" --region eu-west-1
 
       # Scanning didn't work with cas, test the skip-dirs later
