@@ -72,14 +72,14 @@ jobs:
         id: infra
         run: |
           service=$(aws ecs list-services --cluster ${{ secrets.AWS_OPINTOPOLKU_HAHTUVA_ECS_CLUSTER_NAME }} --query "serviceArns[?contains(@, '${{ inputs.application }}')] | [0]" | tr -d \" | sed 's/.*\///')
-          echo "::set-output name=service::$service"
+          echo "servicename=$service" >> $GITHUB_OUTPUT
     
       - name: Deploy Amazon ECS task definition
         if: ${{ inputs.environment }} == 'hahtuva'
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
-          service: ${{ steps.infra.outputs.service }}
+          service: ${{ steps.infra.outputs.servicename }}
           cluster: ${{ secrets.AWS_OPINTOPOLKU_HAHTUVA_ECS_CLUSTER_NAME }}
           wait-for-service-stability: true
     
