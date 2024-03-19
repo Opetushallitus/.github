@@ -40,7 +40,7 @@ jobs:
 
     steps:
       - name: Configure AWS credentials
-        if: ${{ inputs.environment }} == 'hahtuva' || ${{ inputs.environment }} == 'untuva' || ${{ inputs.environment }} == 'pallero'
+        if: ${{ inputs.environment == 'hahtuva' || inputs.environment == 'untuva' || inputs.environment == 'pallero' }} 
         uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4
         with:
           role-to-assume: ${{ secrets.AWS_OPINTOPOLKU_DEV_ROLE_ARN }}
@@ -48,7 +48,7 @@ jobs:
           aws-region: eu-west-1
 
       - name: Configure AWS credentials
-        if: ${{ inputs.environment }} == 'sade'
+        if: ${{ inputs.environment == 'sade' }} 
         uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4
         with:
           role-to-assume: ${{ secrets.AWS_OPINTOPOLKU_PROD_ROLE_ARN }}
@@ -57,7 +57,6 @@ jobs:
 
       - name: Download task definition
         run: |
-          aws sts get-caller-identity --no-cli-pager
           aws ecs describe-task-definition --task-definition ${{ inputs.environment }}-${{ inputs.application }} --query taskDefinition > task-definition.json
           echo $(cat task-definition.json | jq 'del(
                   .taskDefinitionArn,
@@ -78,14 +77,14 @@ jobs:
           image: ${{ env.repo }}/${{ inputs.application }}:${{ inputs.image-tag }}
 
       - name: Query service and cluster from existing infrastructure
-        if: ${{ inputs.environment }} == 'hahtuva'
+        if: ${{ inputs.environment == 'hahtuva' }}
         id: infra
         run: |
           service=$(aws ecs list-services --cluster ${{ secrets.AWS_OPINTOPOLKU_HAHTUVA_ECS_CLUSTER_NAME }} --query "serviceArns[?contains(@, '${{ inputs.application }}')] | [0]" | tr -d \" | sed 's/.*\///')
           echo "servicename=$service" >> $GITHUB_OUTPUT
     
       - name: Deploy Amazon ECS task definition
-        if: ${{ inputs.environment }} == 'hahtuva'
+        if: ${{ inputs.environment == 'hahtuva' }} 
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
@@ -105,18 +104,3 @@ jobs:
           DEPLOY_TIMESTAMP=`TZ='Europe/Helsinki' date +'%Y-%m-%d %H:%M:%S %Z'`
           aws dynamodb put-item --table-name deployments --item "{\"EnvService\": {\"S\": \"${{ inputs.environment }}-${{ inputs.application }}\"}, \"Build\": {\"S\": \"ga-$GITHUB_RUN_NUMBER\"}, \"User\": {\"S\": \"$GITHUB_TRIGGERING_ACTOR\"}, \"Time\": {\"S\": \"$DEPLOY_TIMESTAMP\"}}" --region eu-west-1
           aws dynamodb put-item --table-name services --item "{\"EnvService\": {\"S\": \"${{ inputs.environment }}-${{ inputs.application }}\"}, \"LatestDeployedBuild\": {\"S\": \"ga-$GITHUB_RUN_NUMBER\"}}" --region eu-west-1
-
-      # Scanning didn't work with cas, test the skip-dirs later
-      # - name: Scan image
-      #   id: scan
-      #   uses: aquasecurity/trivy-action@062f2592684a31eb3aa050cc61e7ca1451cecd3d # master
-      #   with:
-      #     image-ref:  ${{ steps.ecr-login.outputs.registry }}/utility/${{ inputs.application }}:ga-${{ github.run_number }}
-      #     format: 'sarif'
-      #     skip-dirs: /proc,/bin,
-      #     output: 'trivy-results.sarif'
-
-      # - name: Upload Trivy scan results to GitHub Security tab
-      #   uses: github/codeql-action/upload-sarif@v2
-      #   with:
-      #     sarif_file: 'trivy-results.sarif'
