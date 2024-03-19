@@ -57,6 +57,7 @@ jobs:
 
       - name: Download task definition
         run: |
+          aws sts get-caller-identity --no-cli-pager
           aws ecs describe-task-definition --task-definition ${{ inputs.environment }}-${{ inputs.application }} --query taskDefinition > task-definition.json
           echo $(cat task-definition.json | jq 'del(
                   .taskDefinitionArn,
