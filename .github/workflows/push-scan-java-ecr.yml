@@ -29,6 +29,11 @@ on:
         required: false
         type: string
         default: '.'
+      type:
+        description: 'Servicetype war/jar. Default: jar'
+        required: false
+        type: string
+        default: jar
       download-artifact:
         description: 'Downloads the artifact instead of fetching it from cache, set download-artifact-name if you set this to true. Default: false'
         required: false
@@ -119,7 +124,7 @@ jobs:
         run: |
           mkdir -p $DOCKER_BUILD_DIR && mkdir $DOCKER_BUILD_DIR/config && mkdir $DOCKER_BUILD_DIR/artifact
           curl -LJO --output-dir $DOCKER_BUILD_DIR https://raw.githubusercontent.com/Opetushallitus/ci-tools/master/github-build/Dockerfile
-          cp -v ${{ inputs.jarfolder }}/${{ inputs.jarfile }} $DOCKER_BUILD_DIR/artifact/${{ inputs.application }}.jar
+          cp -v ${{ inputs.jarfolder }}/${{ inputs.jarfile }} $DOCKER_BUILD_DIR/artifact/${{ inputs.application }}.${{ inputs.type }}
           cp -vr ${{ inputs.configfolder }} $DOCKER_BUILD_DIR/config/
           sed -i -e "s|BASEIMAGE|${ECR_REPO}/utility/${{ inputs.base-image }}|g" ${DOCKER_BUILD_DIR}/Dockerfile
           if [ -d "${DOCKER_BUILD_DIR}/native_libs" ]; then sed -i '/^CMD.*/i COPY native_libs/* /usr/lib' ${DOCKER_BUILD_DIR}/Dockerfile; fi
