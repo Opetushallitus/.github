@@ -96,13 +96,15 @@ jobs:
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@68827325e0b33c7199eb31dd4e31fbe9023e06e3 # v3
+        with:
+          platforms: arm64,amd64
 
       - name: Setup buildx
-        uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226 # v3
+        uses: docker/setup-buildx-action@d70bba72b1f3fd22344832f00baa16ece964efeb # v3.3
         id: buildx
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
         with:
           role-to-assume: ${{ secrets.AWS_UTILITY_ROLE_ARN }}
           role-session-name: ${{ inputs.application }}-push-image
@@ -113,7 +115,7 @@ jobs:
         uses: aws-actions/amazon-ecr-login@062b18b96a7aff071d4dc91bc00c4c1a7945b076 # v2
 
       - name: Login to docker with ECR
-        uses: docker/login-action@aad0f974f21dc644b324e9fa84c4e364f62acbe6 # v3
+        uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20 # v3.1.0
         with:
           registry: ${{ steps.ecr-login.outputs.registry }}
 
@@ -131,7 +133,7 @@ jobs:
 
       - name: Docker meta for image
         id: meta
-        uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5
+        uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
         with:
           images: |
             ${{ steps.ecr-login.outputs.registry }}/utility/${{ inputs.application }}
@@ -141,7 +143,7 @@ jobs:
 
       - name: Build image
         id: build-push
-        uses: docker/build-push-action@4a13e500e55cf31b7a5d59a38ab2040ab0f42f56 # v5
+        uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0 # v5.3.0
         with:
           context: ${{ env.DOCKER_BUILD_DIR }}
           push: true

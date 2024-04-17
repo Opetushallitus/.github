@@ -49,7 +49,7 @@ jobs:
 
       - name: Configure AWS credentials
         if: ${{ inputs.environment == 'sade' }} 
-        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
         with:
           role-to-assume: ${{ secrets.AWS_OPINTOPOLKU_PROD_ROLE_ARN }}
           role-session-name: ${{ inputs.environment }}-${{ inputs.application }}-deploy
@@ -93,7 +93,7 @@ jobs:
           wait-for-service-stability: true
     
       - name: Login to utility
-        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
         with:
           role-to-assume: ${{ secrets.AWS_OPH_UTILITY_ROLE_ARN }}
           role-session-name: ${{ inputs.application }}-update-metadata
