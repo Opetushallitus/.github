@@ -72,7 +72,6 @@ jobs:
             ${{ inputs.jarfolder }}
           key: ${{ github.sha }}
           fail-on-cache-miss: true
-          enableCrossOsArchive: true
       
       - uses: actions/download-artifact@v4
         if: ${{ inputs.download-artifact == true }}
@@ -81,6 +80,7 @@ jobs:
 
       - name: Check that there is a .jar file available in jarfolder
         run: |
+          ls -la
           count=$(find ${{ inputs.jarfolder }}/${{ inputs.jarfile }} -type f | wc -l)
           if [ $count -eq 0 ]
           then
