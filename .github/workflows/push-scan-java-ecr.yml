@@ -66,7 +66,6 @@ jobs:
           
       - uses: actions/cache/restore@v4
         if: ${{ inputs.download-artifact == false }}
-        id: restore-build
         with:
           path: |
             ${{ inputs.jarfolder }}
