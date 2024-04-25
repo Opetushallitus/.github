@@ -88,7 +88,11 @@ jobs:
           then
             exit 1
           else
-            mv ${{ inputs.jarfolder }}/${{ inputs.jarfile }}*.${{ inputs.type }} ${{ inputs.jarfolder }}/${{ inputs.jarfile }}.${{ inputs.type }}
+            count2=$(find ${{ inputs.jarfolder }}/${{ inputs.jarfile }}.${{ inputs.type }} -type f | wc -l)
+            if [ $count2 -eq 0 ]
+            then
+              mv ${{ inputs.jarfolder }}/${{ inputs.jarfile }}-*.${{ inputs.type }} ${{ inputs.jarfolder }}/${{ inputs.jarfile }}.${{ inputs.type }}
+            fi
             exit 0
           fi
 
