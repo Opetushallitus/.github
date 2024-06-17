@@ -43,6 +43,11 @@ on:
         description: 'Name of the artifact downloaded with download-artifact'
         required: false
         type: string
+      native-libraries:
+        description: 'Extract META-INF/native from jar file into java path. Default: false'
+        required: false
+        type: boolean
+        default: false
         
     secrets:
       AWS_UTILITY_ROLE_ARN:
@@ -132,7 +137,12 @@ jobs:
           cp -v ${{ inputs.jarfolder }}/${{ inputs.jarfile }}.${{ inputs.type }} $DOCKER_BUILD_DIR/artifact/${{ inputs.application }}.${{ inputs.type }}
           cp -vr ${{ inputs.configfolder }} $DOCKER_BUILD_DIR/config/
           sed -i -e "s|BASEIMAGE|${ECR_REPO}/utility/${{ inputs.base-image }}|g" ${DOCKER_BUILD_DIR}/Dockerfile
-          if [ -d "${DOCKER_BUILD_DIR}/native_libs" ]; then sed -i '/^CMD.*/i COPY native_libs/* /usr/lib' ${DOCKER_BUILD_DIR}/Dockerfile; fi
+          if [ ${{ inputs.native-libraries }} ]
+          then 
+            jar xf ${{ inputs.jarfolder }}/${{ inputs.jarfile }}.${{ inputs.type }} META-INF/native
+            mv META-INF/native $DOCKER_BUILD_DIR/native_libs
+            sed -i '/^CMD.*/i COPY native_libs/* /usr/lib' ${DOCKER_BUILD_DIR}/Dockerfile
+          fi
 
       - name: Prepare for war build
         if: ${{ inputs.type == 'war' }}
