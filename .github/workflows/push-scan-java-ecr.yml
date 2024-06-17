@@ -137,7 +137,7 @@ jobs:
           cp -v ${{ inputs.jarfolder }}/${{ inputs.jarfile }}.${{ inputs.type }} $DOCKER_BUILD_DIR/artifact/${{ inputs.application }}.${{ inputs.type }}
           cp -vr ${{ inputs.configfolder }} $DOCKER_BUILD_DIR/config/
           sed -i -e "s|BASEIMAGE|${ECR_REPO}/utility/${{ inputs.base-image }}|g" ${DOCKER_BUILD_DIR}/Dockerfile
-          if [ ${{ inputs.native-libraries }} ]
+          if [ ${{ inputs.native-libraries }} = true ]
           then 
             jar xf ${{ inputs.jarfolder }}/${{ inputs.jarfile }}.${{ inputs.type }} META-INF/native
             mv META-INF/native $DOCKER_BUILD_DIR/native_libs
