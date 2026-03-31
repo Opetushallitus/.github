@@ -189,7 +189,7 @@ jobs:
       # Scanning didn't work with cas, test the skip-dirs later
       # - name: Scan image
       #   id: scan
-      #   uses: aquasecurity/trivy-action@062f2592684a31eb3aa050cc61e7ca1451cecd3d # master
+      #   uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0
       #   with:
       #     image-ref:  ${{ steps.ecr-login.outputs.registry }}/utility/${{ inputs.application }}:ga-${{ github.run_number }}
       #     format: 'sarif'
