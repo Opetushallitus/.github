@@ -1,0 +1,100 @@
+name: Update deployment metadata
+
+on:
+  workflow_call:
+    inputs:
+      application:
+        description: 'Service name written to the dashboard (example: cas)'
+        required: true
+        type: string
+      environment:
+        description: 'Environment which was deployed (hahtuva/untuva/pallero/sade)'
+        required: true
+        type: string
+      version:
+        description: 'Deployed build id / image tag (example: ga-956)'
+        required: true
+        type: string
+      deployed-by:
+        description: 'User recorded as the deployer. Defaults to the user who triggered the workflow.'
+        required: false
+        type: string
+        default: ''
+  workflow_dispatch:
+    inputs:
+      application:
+        description: 'Service name written to the dashboard (example: cas)'
+        required: true
+        type: string
+      environment:
+        description: 'Environment which was deployed (hahtuva/untuva/pallero/sade)'
+        required: true
+        type: string
+      version:
+        description: 'Deployed build id / image tag (example: ga-956)'
+        required: true
+        type: string
+      deployed-by:
+        description: 'User recorded as the deployer. Defaults to the user who triggered the workflow.'
+        required: false
+        type: string
+        default: ''
+
+# Organization secret AWS_OPINTOPOLKU_OPS_DASHBOARD_UPDATER_ROLE_ARN (role on Opintopolku Utility - account).
+# Callers pass it with secrets: inherit; this workflow reads it from the environment.
+env:
+  AWS_REGION: eu-west-1
+  AWS_OPINTOPOLKU_OPS_DASHBOARD_UPDATER_ROLE_ARN: ${{ secrets.AWS_OPINTOPOLKU_OPS_DASHBOARD_UPDATER_ROLE_ARN }}
+
+jobs:
+  update-deployment-metadata:
+    name: Update centralized deployment dashboard
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Require deployment role ARN
+        run: |
+          if [ -z "$AWS_OPINTOPOLKU_OPS_DASHBOARD_UPDATER_ROLE_ARN" ]; then
+            echo "Organization secret AWS_OPINTOPOLKU_OPS_DASHBOARD_UPDATER_ROLE_ARN is empty."
+            echo "Call this workflow with secrets: inherit so the organization secret is available."
+            exit 1
+          fi
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
+        with:
+          role-to-assume: ${{ env.AWS_OPINTOPOLKU_OPS_DASHBOARD_UPDATER_ROLE_ARN }}
+          role-session-name: ${{ inputs.environment }}-${{ inputs.application }}-dashboard
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Update deployment metadata
+        env:
+          ENVIRONMENT: ${{ inputs.environment }}
+          APPLICATION: ${{ inputs.application }}
+          VERSION: ${{ inputs.version }}
+          DEPLOYED_BY: ${{ inputs.deployed-by }}
+        run: |
+          DEPLOY_TIMESTAMP=$(TZ='Europe/Helsinki' date +'%Y-%m-%d %H:%M:%S %Z')
+          USER_NAME="${DEPLOYED_BY:-$GITHUB_TRIGGERING_ACTOR}"
+          ENV_SERVICE="${ENVIRONMENT}-${APPLICATION}"
+
+          aws dynamodb put-item \
+            --table-name deployments \
+            --region "$AWS_REGION" \
+            --item "$(jq -n \
+              --arg envService "$ENV_SERVICE" \
+              --arg build "$VERSION" \
+              --arg user "$USER_NAME" \
+              --arg time "$DEPLOY_TIMESTAMP" \
+              '{EnvService:{S:$envService}, Build:{S:$build}, User:{S:$user}, Time:{S:$time}}')"
+
+          aws dynamodb put-item \
+            --table-name services \
+            --region "$AWS_REGION" \
+            --item "$(jq -n \
+              --arg envService "$ENV_SERVICE" \
+              --arg build "$VERSION" \
+              '{EnvService:{S:$envService}, LatestDeployedBuild:{S:$build}}')"

@@ -1,0 +1,29 @@
+name: Update deployment metadata
+
+on:
+  workflow_dispatch:
+    inputs:
+      application:
+        description: 'Service name written to the dashboard (example: cas)'
+        required: true
+        type: string
+      environment:
+        description: 'Environment which was deployed (hahtuva/untuva/pallero/sade)'
+        required: true
+        type: string
+      version:
+        description: 'Deployed build id / image tag (example: ga-956)'
+        required: true
+        type: string
+
+jobs:
+  update-deployment-metadata:
+    permissions:
+      id-token: write
+      contents: read
+    uses: Opetushallitus/.github/.github/workflows/update-deployment-metadata.yml@main
+    with:
+      application: ${{ inputs.application }}
+      environment: ${{ inputs.environment }}
+      version: ${{ inputs.version }}
+    secrets: inherit
