@@ -1,0 +1,101 @@
+name: Update build metadata
+
+on:
+  workflow_call:
+    inputs:
+      application:
+        description: 'Service name written to the dashboard (example: cas)'
+        required: true
+        type: string
+      version:
+        description: 'Build id / image tag (example: ga-956)'
+        required: true
+        type: string
+      branch:
+        description: 'Branch recorded for the build. Defaults to the caller ref. Pull requests are recorded as head>base.'
+        required: false
+        type: string
+        default: ''
+      commit:
+        description: 'Commit SHA recorded for the build. Defaults to the caller commit.'
+        required: false
+        type: string
+        default: ''
+  workflow_dispatch:
+    inputs:
+      application:
+        description: 'Service name written to the dashboard (example: cas)'
+        required: true
+        type: string
+      version:
+        description: 'Build id / image tag (example: ga-956)'
+        required: true
+        type: string
+      branch:
+        description: 'Branch recorded for the build. Defaults to the caller ref. Pull requests are recorded as head>base.'
+        required: false
+        type: string
+        default: ''
+      commit:
+        description: 'Commit SHA recorded for the build. Defaults to the caller commit.'
+        required: false
+        type: string
+        default: ''
+
+# Organization secret AWS_OPINTOPOLKU_OPS_DASHBOARD_UPDATER_ROLE_ARN (role on Opintopolku Utility - account).
+# Callers pass it with secrets: inherit; this workflow reads it from the environment.
+env:
+  AWS_REGION: eu-west-1
+  AWS_OPINTOPOLKU_OPS_DASHBOARD_UPDATER_ROLE_ARN: ${{ secrets.AWS_OPINTOPOLKU_OPS_DASHBOARD_UPDATER_ROLE_ARN }}
+
+jobs:
+  update-build-metadata:
+    name: Update centralized build dashboard
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Require deployment role ARN
+        run: |
+          if [ -z "$AWS_OPINTOPOLKU_OPS_DASHBOARD_UPDATER_ROLE_ARN" ]; then
+            echo "Organization secret AWS_OPINTOPOLKU_OPS_DASHBOARD_UPDATER_ROLE_ARN is empty."
+            echo "Call this workflow with secrets: inherit so the organization secret is available."
+            exit 1
+          fi
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 # v4.0.2
+        with:
+          role-to-assume: ${{ env.AWS_OPINTOPOLKU_OPS_DASHBOARD_UPDATER_ROLE_ARN }}
+          role-session-name: ${{ inputs.application }}-build-dashboard
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Update build metadata
+        env:
+          APPLICATION: ${{ inputs.application }}
+          VERSION: ${{ inputs.version }}
+          BRANCH_INPUT: ${{ inputs.branch }}
+          COMMIT_INPUT: ${{ inputs.commit }}
+        run: |
+          BUILD_TIMESTAMP=$(TZ='Europe/Helsinki' date +'%Y-%m-%d %H:%M:%S %Z')
+          if [ -n "$BRANCH_INPUT" ]; then
+            BRANCH="$BRANCH_INPUT"
+          elif [ -n "$GITHUB_HEAD_REF" ]; then
+            BRANCH="${GITHUB_HEAD_REF}>${GITHUB_BASE_REF}"
+          else
+            BRANCH="$GITHUB_REF_NAME"
+          fi
+          COMMIT="${COMMIT_INPUT:-$GITHUB_SHA}"
+
+          aws dynamodb put-item \
+            --table-name builds \
+            --region "$AWS_REGION" \
+            --item "$(jq -n \
+              --arg service "$APPLICATION" \
+              --arg build "$VERSION" \
+              --arg branch "$BRANCH" \
+              --arg commit "$COMMIT" \
+              --arg time "$BUILD_TIMESTAMP" \
+              '{Service:{S:$service}, Build:{S:$build}, Branch:{S:$branch}, Commit:{S:$commit}, Time:{S:$time}}')"

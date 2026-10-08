@@ -1,0 +1,24 @@
+name: Update build metadata
+
+on:
+  workflow_dispatch:
+    inputs:
+      application:
+        description: 'Service name written to the dashboard (example: cas)'
+        required: true
+        type: string
+      version:
+        description: 'Build id / image tag (example: ga-956)'
+        required: true
+        type: string
+
+jobs:
+  update-build-metadata:
+    permissions:
+      id-token: write
+      contents: read
+    uses: Opetushallitus/.github/.github/workflows/update-build-metadata.yml@main
+    with:
+      application: ${{ inputs.application }}
+      version: ${{ inputs.version }}
+    secrets: inherit

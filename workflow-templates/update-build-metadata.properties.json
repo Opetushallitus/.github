@@ -1,0 +1,8 @@
+{
+    "name": "Opetushallitus Update build metadata",
+    "description": "Record a build in the centralized ops dashboard DynamoDB builds table",
+    "categories": [
+        "Deployment"
+    ],
+    "iconName": "oph"
+}
